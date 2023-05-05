@@ -75,7 +75,8 @@ class LinkToFeatureStore:
         with self.session() as session:
             #return session.query(klass).filter_by(uid=str(uid)).first().to_dataclass()
             xs= session.query(klass).filter_by(**kwargs)
-            return [o.to_dataclass() for o in xs.all()]
+            result= [o.to_dataclass() for o in xs.all()]
+            return [vars(x) for x in result]
         
 
     def update_mutil(self, uid, name, version, **kwargs):
