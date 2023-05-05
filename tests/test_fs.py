@@ -17,4 +17,4 @@ feature = FeatureSet(
 
 test.add(feature)
 
-test.update(uid="21046110", content="5.99")
+# test.update(uid="21046110", content="5.99")

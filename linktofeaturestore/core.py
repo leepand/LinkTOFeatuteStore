@@ -70,10 +70,13 @@ class LinkToFeatureStore:
             self.feature_db.store(loop, kind)
         return True
 
-    def get(self, uid, kind="feature_set"):
+    def get(self, kind="feature_set",**kwargs):
         klass = {"feature_set": FeatureSet}[kind]
         with self.session() as session:
-            return session.query(klass).filter_by(uid=str(uid)).first().to_dataclass()
+            #return session.query(klass).filter_by(uid=str(uid)).first().to_dataclass()
+            xs= session.query(klass).filter_by(**kwargs)
+            return [o.to_dataclass() for o in xs.all()]
+        
 
     def update_mutil(self, uid, name, version, **kwargs):
         with self.session() as session:
