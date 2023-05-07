@@ -18,5 +18,5 @@ feature = FeatureSet(
 # 当key=f"{uid}-{name}-{version}""存在时update，否则 insert
 test.add(feature)
 # 多条件查询
-test.get(uid="21046110",author="sundi",version="1")
+test.get(uid="21046110", author="sundi", version="1")
 # test.update(uid="21046110", content="5.99")

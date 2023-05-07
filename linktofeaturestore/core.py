@@ -1,7 +1,7 @@
 import contextlib
 import sqlalchemy.orm
 import sqlalchemy as sqla
-from sqlalchemy import update
+from sqlalchemy import update, delete, and_
 import datetime as dt
 
 from mlopskit.pastry.data_store import FeatureSet
@@ -70,14 +70,14 @@ class LinkToFeatureStore:
             self.feature_db.store(loop, kind)
         return True
 
-    def get(self, kind="feature_set",**kwargs):
+    def get(self, kind="feature_set", **kwargs):
         klass = {"feature_set": FeatureSet}[kind]
         with self.session() as session:
-            #return session.query(klass).filter_by(uid=str(uid)).first().to_dataclass()
-            xs= session.query(klass).filter_by(**kwargs)
-            result= [o.to_dataclass() for o in xs.all()]
-            return [vars(x) for x in result]
-        
+            # return session.query(klass).filter_by(uid=str(uid)).first().to_dataclass()
+            xs = session.query(klass).filter_by(**kwargs)
+            result = [o.to_dataclass() for o in xs.all()]
+            # [vars(x) for x in result]
+            return result
 
     def update_mutil(self, uid, name, version, **kwargs):
         with self.session() as session:
@@ -103,4 +103,44 @@ class LinkToFeatureStore:
             kwargs["created_at"] = created_at
             stmt = update(FeatureSet).where(FeatureSet.uid == uid).values(**kwargs)
             session.execute(stmt)
+            session.commit()
+
+    def delete(
+        self,
+        uid=None,
+        name=None,
+        cn_name=None,
+        version=None,
+        author=None,
+        log_type=None,
+        feature_type=None,
+    ):
+        conditions = []
+        if uid:
+            conditions.append(FeatureSet.uid == str(uid))
+        if name:
+            conditions.append(FeatureSet.name == str(name))
+        if cn_name:
+            conditions.append(FeatureSet.cn_name == str(cn_name))
+
+        if version:
+            conditions.append(FeatureSet.version == str(version))
+
+        if author:
+            conditions.append(FeatureSet.author == str(author))
+
+        if log_type:
+            conditions.append(FeatureSet.log_type == str(log_type))
+
+        if feature_type:
+            conditions.append(FeatureSet.feature_type == str(feature_type))
+        if len(conditions) < 1:
+            return "请指定要删除的条件"
+        if uid and name and version:
+            uni_key = f"{uid}:{name}:{version}"
+            self.feature_cache.delete(uni_key)
+
+        with self.session() as session:
+            delete_query = delete(FeatureSet).where(and_(*conditions))
+            session.execute(delete_query)
             session.commit()
